@@ -22,16 +22,17 @@ func main() {
 	// Setup repositories
 	userRepo := repositories.NewUserRepository(db)
 	discussionRepo := repositories.NewDiscussionRepository(db)
-	// commentRepo := repositories.NewCommentRepository(db)
+	commentRepo := repositories.NewCommentRepository(db)
 
 	// Setup services
 	userService := services.NewUserService(userRepo)
 	discussionService := services.NewDiscussionService(discussionRepo)
-	// commentService := services.NewCommentService(commentRepo)
+	commentService := services.NewCommentService(commentRepo, *discussionRepo)
 
 	// Setup controllers
 	userController := controllers.NewUserController(userService)
 	discussionController := controllers.NewDiscussionController(discussionService)
+	commentController := controllers.NewCommentController(commentService)
 
 	// Setup Gin router
 	router := gin.Default()
@@ -56,9 +57,11 @@ func main() {
 		discussionRouter.DELETE("/delete/:id", discussionController.DeleteDiscussion)
 		discussionRouter.GET("/tags", discussionController.GetDiscussionsByTags) // Endpoint to get discussions by tags
 		discussionRouter.GET("/search", discussionController.GetDiscussionsBySearchText)
-		// discussionRouter.GET("/:id", discussionController.GetDiscussion)
-		// Add other discussion routes as needed
+
 	}
+
+	commentRouter := router.Group("/comments")
+	commentRouter.POST("/:discussionID", commentController.CreateComment)
 
 	// Start server
 	router.Run(":8080")
